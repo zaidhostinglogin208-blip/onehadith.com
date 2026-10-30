@@ -3,79 +3,27 @@ const state={saved:JSON.parse(localStorage.getItem("oh-saved")||"[]"),lang:local
 const $=id=>document.getElementById(id);
 
 async function load(){
-  setLang(state.lang);
-  await randomHadith(true);
-}
-
-async function fetchRandomHadith(){
-  const res=await fetch("https://ummahapi.com/api/hadith/random",{cache:"no-store"});
-  if(!res.ok)throw new Error("API HTTP "+res.status);
-  const random=await res.json();
-  const d=random.data;
-  if(!d)throw new Error("Invalid API response");
-
-  let full=d;
-  try{
-    const detail=await fetch("https://ummahapi.com/api/hadith/"+encodeURIComponent(d.collection)+"/"+encodeURIComponent(d.hadithnumber),{cache:"no-store"});
-    if(detail.ok){
-      const detailJson=await detail.json();
-      if(detailJson&&detailJson.data)full={...d,...detailJson.data};
-    }
-  }catch(e){console.warn("Detailed Hadith metadata unavailable.",e);}
-
-  return {
-    id:full.id||d.id,
-    collection:full.collection_name||full.collection||"",
-    book:full.book||"",
-    chapter:full.chapter||"",
-    narrator:full.narrator||"",
-    grade:full.grade||"",
-    arabic:full.arabic||"",
-    english:full.english||"",
-    bangla:full.bangla||"",
-    hadithNumber:full.hadithnumber||d.hadithnumber||"",
-    inBookReference:full.in_book_reference||("Hadith "+(full.hadithnumber||d.hadithnumber||"")),
-    uscMsaReference:full.usc_msa_reference||"",
-    relatedReferences:full.related_references||"",
-    source:"UmmahAPI",
-    sourceUrl:"https://ummahapi.com/hadith-api",
-    understanding:"",
-    realLifeExample:"",
-    practicalLesson:""
-  };
-}
-
-async function randomHadith(initial=false){
-  try{
-    const h=await fetchRandomHadith();
-    if(state.seen.length>0&&state.seen.includes(h.id)&&!initial){
-      for(let i=0;i<4&&state.seen.includes(h.id);i++)h=await fetchRandomHadith();
-    }
-    state.seen.push(h.id);
-    if(state.seen.length>50)state.seen.shift();
-    hadiths=[h];
-    current=0;
-    render();
-    $("reader").classList.add("show");
-    if(!initial)$("reader").scrollIntoView({behavior:"smooth",block:"start"});
-  }catch(e){
-    console.error("Hadith API could not be loaded.",e);
-    if(!hadiths.length)loadLocalFallback(initial);
-  }
-}
-
-async function loadLocalFallback(initial){
   try{
     const r=await fetch("./data/hadith.json",{cache:"no-store"});
-    if(!r.ok)throw new Error("Fallback HTTP "+r.status);
-    const data=await r.json();
-    if(!Array.isArray(data)||!data.length)throw new Error("Empty fallback");
-    hadiths=data;
-    current=Math.floor(Math.random()*hadiths.length);
-    render();
-    $("reader").classList.add("show");
-    if(!initial)$("reader").scrollIntoView({behavior:"smooth",block:"start"});
-  }catch(e){console.error("Hadith fallback could not be loaded.",e);}
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    hadiths=await r.json();
+    if(!Array.isArray(hadiths)||!hadiths.length)throw new Error("Empty data");
+    current=-1;
+  }catch(e){
+    console.error("Hadith data could not be loaded.",e);
+    hadiths=[];
+  }
+  setLang(state.lang);
+}
+
+function randomHadith(){
+  if(!hadiths.length)return;
+  let n=Math.floor(Math.random()*hadiths.length);
+  if(hadiths.length>1&&n===current)n=(n+1)%hadiths.length;
+  current=n;
+  render();
+  $("reader").classList.add("show");
+  $("reader").scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 function render(){
