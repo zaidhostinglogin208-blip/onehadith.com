@@ -18,9 +18,15 @@ async function load(){
 
 function randomHadith(){
   if(!hadiths.length)return;
-  let n=Math.floor(Math.random()*hadiths.length);
-  if(hadiths.length>1&&n===current)n=(n+1)%hadiths.length;
+  let available=hadiths.map((_,i)=>i).filter(i=>!state.seen.includes(hadiths[i].id));
+  if(!available.length){state.seen=[];available=hadiths.map((_,i)=>i);}
+  let n=available[Math.floor(Math.random()*available.length)];
+  if(hadiths.length>1&&n===current){
+    const alternatives=available.filter(i=>i!==current);
+    if(alternatives.length)n=alternatives[Math.floor(Math.random()*alternatives.length)];
+  }
   current=n;
+  state.seen.push(hadiths[current].id);
   render();
   $("reader").classList.add("show");
   $("reader").scrollIntoView({behavior:"smooth",block:"start"});
