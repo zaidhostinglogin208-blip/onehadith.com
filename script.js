@@ -1,5 +1,5 @@
 let hadiths=[],current=-1;
-const state={saved:JSON.parse(localStorage.getItem("oh-saved")||"[]"),lang:localStorage.getItem("oh-lang")||"en"),seen:[]};
+const state={saved:JSON.parse(localStorage.getItem("oh-saved")||"[]"),lang:localStorage.getItem("oh-lang")||"en",seen:[]};
 const $=id=>document.getElementById(id);
 
 async function load(){
