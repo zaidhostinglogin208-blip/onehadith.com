@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign Up — One Hadith</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><a class="brand" href="./"><span>ﷲ</span> One Hadith</a><nav><a class="nav-link" href="./login.html">Login</a></nav></header>
+<main class="auth-main"><section class="auth-card">
+<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+<h1>Create your account.</h1><p class="auth-muted">Your Hadith reading can stay public; your account is for personal features.</p>
+<form id="signupForm" class="auth-form">
+<label>Name<input id="name" type="text" maxlength="80" autocomplete="name" required></label>
+<label>Email<input id="email" type="email" autocomplete="email" required></label>
+<label>Password<input id="password" type="password" autocomplete="new-password" minlength="8" required></label>
+<label>Confirm password<input id="confirm" type="password" autocomplete="new-password" minlength="8" required></label>
+<button class="primary auth-submit" type="submit">Create Account <b>→</b></button>
+</form>
+<p id="message" class="auth-message" role="status"></p>
+<p class="auth-switch">Already have an account? <a href="./login.html">Login</a></p>
+</section></main>
+<script type="module">
+import { supabase, ensureProfile } from "./auth.js";
+const form=document.getElementById("signupForm"), msg=document.getElementById("message");
+function show(text,ok=false){msg.textContent=text;msg.className="auth-message "+(ok?"ok":"error");}
+form.addEventListener("submit",async e=>{
+  e.preventDefault();
+  const name=document.getElementById("name").value.trim();
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("password").value;
+  const confirm=document.getElementById("confirm").value;
+  if(password!==confirm){show("Passwords do not match.");return;}
+  show("Creating your account…");
+  const {data,error}=await supabase.auth.signUp({
+    email,password,
+    options:{data:{display_name:name},emailRedirectTo:location.origin+location.pathname.replace("signup.html","profile.html")}
+  });
+  if(error){show(error.message);return;}
+  if(data.user && data.session){
+    await ensureProfile(data.user,name);
+    location.href="./profile.html";
+    return;
+  }
+  show("Account created. Please check your email and confirm your account before logging in.",true);
+});
+</script>
+</body></html>
