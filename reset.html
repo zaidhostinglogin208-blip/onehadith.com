@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reset Password — One Hadith</title><link rel="stylesheet" href="style.css">
+</head>
+<body><header><a class="brand" href="./"><span>ﷲ</span> One Hadith</a></header>
+<main class="auth-main"><section class="auth-card">
+<h1>Set a new password.</h1><p class="auth-muted">Choose a strong password for your One Hadith account.</p>
+<form id="resetForm" class="auth-form">
+<label>New password<input id="password" type="password" minlength="8" autocomplete="new-password" required></label>
+<label>Confirm password<input id="confirm" type="password" minlength="8" autocomplete="new-password" required></label>
+<button class="primary auth-submit" type="submit">Update Password <b>→</b></button>
+</form><p id="message" class="auth-message" role="status"></p>
+</section></main>
+<script type="module">
+import { supabase } from "./auth.js";
+const form=document.getElementById("resetForm"),msg=document.getElementById("message");
+function show(t,ok=false){msg.textContent=t;msg.className="auth-message "+(ok?"ok":"error");}
+form.addEventListener("submit",async e=>{
+ e.preventDefault();const p=document.getElementById("password").value,c=document.getElementById("confirm").value;
+ if(p!==c){show("Passwords do not match.");return;}
+ const {error}=await supabase.auth.updateUser({password:p});
+ if(error){show(error.message);return;}
+ show("Password updated successfully. You can now use your new password.",true);
+ setTimeout(()=>location.href="./profile.html",1200);
+});
+</script></body></html>
