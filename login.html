@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login — One Hadith</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><a class="brand" href="./"><span>ﷲ</span> One Hadith</a><nav><a class="nav-link" href="./signup.html">Sign Up</a></nav></header>
+<main class="auth-main"><section class="auth-card">
+<div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+<h1>Welcome back.</h1><p class="auth-muted">Login to access your One Hadith account.</p>
+<form id="loginForm" class="auth-form">
+<label>Email<input id="email" type="email" autocomplete="email" required></label>
+<label>Password<input id="password" type="password" autocomplete="current-password" minlength="8" required></label>
+<button class="primary auth-submit" type="submit">Login <b>→</b></button>
+</form>
+<button id="forgot" class="text-button" type="button">Forgot password?</button>
+<p id="message" class="auth-message" role="status"></p>
+<p class="auth-switch">New here? <a href="./signup.html">Create an account</a></p>
+</section></main>
+<script type="module">
+import { supabase, ensureProfile } from "./auth.js";
+const form=document.getElementById("loginForm"), msg=document.getElementById("message");
+function show(text,ok=false){msg.textContent=text;msg.className="auth-message "+(ok?"ok":"error");}
+form.addEventListener("submit",async e=>{
+  e.preventDefault(); show("Logging in…");
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("password").value;
+  const {data,error}=await supabase.auth.signInWithPassword({email,password});
+  if(error){show(error.message);return;}
+  await ensureProfile(data.user);
+  location.href="./profile.html";
+});
+document.getElementById("forgot").addEventListener("click",async()=>{
+  const email=document.getElementById("email").value.trim();
+  if(!email){show("Enter your email first.");return;}
+  const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname.replace("login.html","reset.html")});
+  if(error){show(error.message);return;}
+  show("If the email is eligible, a password reset message has been sent.",true);
+});
+</script>
+</body></html>
