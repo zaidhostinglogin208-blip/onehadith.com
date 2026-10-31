@@ -1,3 +1,4 @@
+import { supabase, initAuthUI } from "./auth.js";
 let hadiths=[],current=-1;
 const state={saved:JSON.parse(localStorage.getItem("oh-saved")||"[]"),lang:localStorage.getItem("oh-lang")||"en",seen:[]};
 const $=id=>document.getElementById(id);
@@ -61,7 +62,8 @@ function setLang(l){
   }
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
+document.addEventListener("DOMContentLoaded",async()=>{
+  await initAuthUI();
   $("random").addEventListener("click",()=>randomHadith(false));
   $("another").addEventListener("click",()=>randomHadith(false));
   document.querySelectorAll(".lang").forEach(x=>x.addEventListener("click",()=>setLang(x.dataset.lang)));
