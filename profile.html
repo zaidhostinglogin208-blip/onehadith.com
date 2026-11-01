@@ -6,17 +6,14 @@
 </head>
 <body><header><a class="brand" href="./"><span>ﷲ</span> One Hadith</a><nav><div class="account-nav" id="accountNav"></div></nav></header>
 <main class="account-main">
-<section class="account-welcome"><div class="eyebrow">YOUR PERSONAL SPACE</div><h1 id="hello">Your Profile</h1><p>Manage your details, reading preference and saved Hadith in one place.</p></section>
+<section class="account-welcome"><div class="eyebrow">YOUR PERSONAL SPACE</div><h1 id="hello">Your Profile</h1><p>Manage your personal details and saved Hadith in one place.</p></section>
 <section class="account-panel" id="profile">
-  <div class="account-section-heading"><span class="section-symbol">◉</span><div><h2>Profile settings</h2><p>Update your name and reading preference.</p></div></div>
+  <div class="account-section-heading"><span class="section-symbol">◉</span><div><h2>Profile settings</h2><p>Update your name and personal details.</p></div></div>
   <form id="profileForm" class="auth-form profile-settings">
     <div class="name-fields">
       <label>First name<input id="firstName" type="text" maxlength="60" autocomplete="given-name" required></label>
       <label>Last name<input id="lastName" type="text" maxlength="60" autocomplete="family-name"></label>
     </div>
-    <label>Hadith length preference
-      <select id="preferredLength"><option value="all">All Hadith</option><option value="small">Small · Under 40 words</option><option value="medium">Medium · 40–80 words</option><option value="large">Large · Over 80 words</option></select>
-    </label>
     <button class="primary auth-submit" type="submit">Save Profile <b>✓</b></button>
   </form>
   <div id="adminBox" class="admin-note" hidden>Admin access is enabled for this account.</div>
@@ -31,7 +28,7 @@
   <div id="readLaterList" class="saved-list"><p class="empty-list">Loading your reading list…</p></div>
 </section>
 <section class="account-panel account-help" id="settings">
-  <div class="account-section-heading"><span class="section-symbol">⚙</span><div><h2>Reading settings</h2><p>Your selected Hadith length filter is also applied on the Home page.</p></div></div>
+  <div class="account-section-heading"><span class="section-symbol">⚙</span><div><h2>Reading settings</h2><p>Choose your Hadith length directly from the hamburger menu.</p></div></div>
   <a class="reading-cta" href="./"><span>Back to Home</span><span class="reading-cta-circle" aria-hidden="true">→</span></a>
 </section>
 </main>
@@ -49,16 +46,14 @@ const last=profile.last_name||((profile.display_name||"").trim().split(/\s+/).sl
 document.getElementById("hello").textContent="Hello, "+([first,last].filter(Boolean).join(" ")||"there")+".";
 document.getElementById("firstName").value=first;
 document.getElementById("lastName").value=last;
-document.getElementById("preferredLength").value=profile.preferred_length||"all";
 if(profile.role==="admin"){const box=document.getElementById("adminBox");box.hidden=false;box.innerHTML='Admin access is enabled. <a href="./admin.html" style="color:inherit;font-weight:900">Open Admin Dashboard →</a>';}
 if(localStorage.getItem("oh-theme")==="dark")document.body.classList.add("dark");
 document.getElementById("profileForm").addEventListener("submit",async e=>{
  e.preventDefault();
  const firstName=document.getElementById("firstName").value.trim();
  const lastName=document.getElementById("lastName").value.trim();
- const preferredLength=document.getElementById("preferredLength").value;
  const displayName=[firstName,lastName].filter(Boolean).join(" ");
- const {error}=await supabase.from("profiles").update({first_name:firstName,last_name:lastName,display_name:displayName,preferred_length:preferredLength}).eq("id",user.id);
+ const {error}=await supabase.from("profiles").update({first_name:firstName,last_name:lastName,display_name:displayName}).eq("id",user.id);
  if(error){show(error.message);return;}
  document.getElementById("hello").textContent="Hello, "+displayName+".";
  show("Profile saved.",true);
