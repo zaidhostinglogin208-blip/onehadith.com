@@ -30,6 +30,21 @@
 </main>
 <script type="module">
 import { supabase, ensureProfile, initAuthUI } from "./auth.js";
+const view=new URLSearchParams(location.search).get("view")||"profile";
+const profileSection=document.getElementById("profile");
+const favoriteSection=document.getElementById("favorites");
+const laterSection=document.getElementById("read-later");
+if(view==="favorites"){
+ profileSection.remove();laterSection.remove();
+ document.querySelector(".account-welcome h1").textContent="Favorite List";
+ document.querySelector(".account-welcome p").textContent="Hadith you have marked as favorite.";
+}else if(view==="read-later"){
+ profileSection.remove();favoriteSection.remove();
+ document.querySelector(".account-welcome h1").textContent="Read Later";
+ document.querySelector(".account-welcome p").textContent="Your saved reading queue. Items stay here until you manually remove them.";
+}else{
+ favoriteSection.remove();laterSection.remove();
+}
 const msg=document.getElementById("message");
 function show(t,ok=false){msg.textContent=t;msg.className="auth-message "+(ok?"ok":"error");}
 const user=await supabase.auth.getUser().then(x=>x.data.user);
