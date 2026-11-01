@@ -15,6 +15,10 @@ async function load(){
     hadiths=[];
   }
   setLang(state.lang);
+  if(new URLSearchParams(location.search).get("start")==="1"){
+    history.replaceState({}, "", location.pathname);
+    randomHadith();
+  }
 }
 
 function randomHadith(){
