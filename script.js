@@ -15,6 +15,7 @@ async function load(){
     if(!Array.isArray(hadiths)||!hadiths.length)throw new Error("Empty data");
   }catch(e){console.error("Hadith data could not be loaded.",e);hadiths=[];}
   if(state.user){
+    $("memberActions").hidden=false;
     const {data:profile}=await supabase.from("profiles").select("preferred_length").eq("id",state.user.id).maybeSingle();
     state.length=profile?.preferred_length||"all";
     const {data:saves,error}=await supabase.from("user_hadith_saves").select("hadith_id,list_type").eq("user_id",state.user.id);
