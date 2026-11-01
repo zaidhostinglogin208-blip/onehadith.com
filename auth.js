@@ -43,8 +43,8 @@ export async function initAuthUI() {
       <button class="hamburger-btn" id="menuToggle" type="button" aria-label="Open account menu" aria-expanded="false"><span></span><span></span><span></span></button>
       <div class="account-dropdown" id="accountDropdown" hidden>
         <a href="./profile.html#profile">Profile</a>
-        <a href="./favorites.html">Favorite List</a>
-        <a href="./read-later.html">Read Later</a>
+        <a href="./profile.html?view=favorites">Favorite List</a>
+        <a href="./profile.html?view=read-later">Read Later</a>
         <div class="menu-filter"><label for="menuLengthFilter">Hadith length</label><select id="menuLengthFilter"><option value="all">All</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></div>
         <button id="menuLogout" type="button">Logout</button>
       </div>
