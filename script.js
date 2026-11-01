@@ -23,8 +23,8 @@ async function load(){
       state.favorites=saves.filter(x=>x.list_type==="favorite").map(x=>x.hadith_id);
       state.readLater=saves.filter(x=>x.list_type==="read_later").map(x=>x.hadith_id);
     }
-    $("lengthFilterBar").hidden=false;
-    $("lengthFilter").value=state.length;
+    const menuFilter=$("menuLengthFilter");
+    if(menuFilter)menuFilter.value=state.length;
   }
   setLang(state.lang);
   const params=new URLSearchParams(location.search);
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   $("another").addEventListener("click",randomHadith);
   $("save").addEventListener("click",()=>toggleList("favorite"));
   $("readLater").addEventListener("click",()=>toggleList("read_later"));
-  $("lengthFilter").addEventListener("change",e=>changeLength(e.target.value));
+  document.addEventListener("change",e=>{if(e.target?.id==="menuLengthFilter")changeLength(e.target.value);});
   document.querySelectorAll(".lang").forEach(x=>x.addEventListener("click",()=>setLang(x.dataset.lang)));
   $("theme").addEventListener("click",()=>{
     document.body.classList.toggle("dark");
