@@ -6,7 +6,7 @@
 </head>
 <body><header><a class="brand" href="./"><span>ﷲ</span> One Hadith</a><nav><button class="nav-link" id="logout">Logout</button></nav></header>
 <main class="auth-main"><section class="auth-card">
-<div class="eyebrow">My account</div><h1 id="hello">Account</h1><p id="email" class="auth-muted"></p>
+<div class="eyebrow">My account</div><h1 id="hello">Account</h1>
 <section class="reading-feature" aria-labelledby="readingTitle">
   <div class="reading-feature-top"><span class="reading-feature-icon" aria-hidden="true">✦</span><span class="reading-feature-label">A MOMENT OF REFLECTION</span></div>
   <h2 id="readingTitle">Your next Hadith is waiting.</h2>
@@ -30,7 +30,6 @@ if(!user){location.href="./login.html";throw new Error("Not authenticated");}
 const {data:profile,error}=await ensureProfile(user);
 if(error){show("Could not load your profile: "+error.message);throw error;}
 document.getElementById("hello").textContent="Hello, "+(profile.display_name||user.email.split("@")[0])+".";
-document.getElementById("email").textContent=user.email;
 document.getElementById("name").value=profile.display_name||"";
 if(profile.role==="admin"){document.getElementById("adminBox").hidden=false;document.getElementById("adminBox").innerHTML='Admin access is enabled. <a href="./admin.html" style="color:inherit;font-weight:900">Open Admin Dashboard →</a>';}
 document.getElementById("profileForm").addEventListener("submit",async e=>{
