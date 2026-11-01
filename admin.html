@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard — One Hadith</title><link rel="stylesheet" href="./style.css">
+<style>
+.admin-wrap{padding:34px 0 70px}.admin-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:24px}.admin-head h1{font-size:clamp(32px,5vw,48px)}.admin-sub{color:var(--muted);line-height:1.6}.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}.stat{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}.stat small{color:var(--muted);font-weight:700}.stat strong{display:block;font-size:30px;margin-top:8px}.table-wrap{overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:18px}.users{width:100%;border-collapse:collapse;min-width:680px}.users th,.users td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);font-size:13px}.users th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}.pill{display:inline-block;padding:5px 9px;border-radius:99px;background:var(--soft);color:var(--accent);font-weight:800;font-size:11px}.admin-actions{display:flex;gap:10px;align-items:center}.admin-actions button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;padding:10px 13px;font-weight:800}.state{padding:20px;color:var(--muted)}@media(max-width:650px){.stat-grid{grid-template-columns:1fr 1fr}.stat:last-child{grid-column:1/-1}}
+</style></head><body>
+<header><a class="brand" href="./"><span>ﷲ</span> One Hadith</a><nav><a class="nav-link" href="./profile.html">My Account</a></nav></header>
+<main class="admin-wrap">
+<div class="admin-head"><div><div class="eyebrow">Private area</div><h1>Admin Dashboard</h1><p class="admin-sub">Registered accounts and their latest sign-in information.</p></div><div class="admin-actions"><button id="refresh" type="button">Refresh ↻</button></div></div>
+<div class="stat-grid"><div class="stat"><small>Total registered users</small><strong id="total">—</strong></div><div class="stat"><small>Google sign-up identities</small><strong id="google">—</strong></div><div class="stat"><small>Email sign-up identities</small><strong id="email">—</strong></div></div>
+<div class="table-wrap"><div id="state" class="state">Checking admin access…</div><table class="users" id="userTable" hidden><thead><tr><th>Name</th><th>Email</th><th>Provider</th><th>Joined</th><th>Last sign-in</th></tr></thead><tbody id="userRows"></tbody></table></div>
+<p class="admin-sub">Only account registration and sign-in timestamps are shown. This page does not track every page visit or live visitors.</p>
+</main>
+<script type="module">
+import {supabase} from "./auth.js";
+const state=document.getElementById("state"),table=document.getElementById("userTable");
+const fmt=v=>v?new Date(v).toLocaleString():"Never";
+async function load(){
+ state.hidden=false;state.textContent="Loading users…";table.hidden=true;
+ const {data:{user},error:authError}=await supabase.auth.getUser();
+ if(authError||!user){location.href="./login.html";return;}
+ const {data,error}=await supabase.rpc("admin_list_users");
+ if(error){state.textContent=error.message.includes("Not authorized")?"Access denied. This account is not an administrator.":"Could not load users: "+error.message;return;}
+ const rows=data||[];
+ document.getElementById("total").textContent=rows.length;
+ let g=0,e=0;
+ for(const u of rows){let providers=[];try{providers=JSON.parse(u.providers||"[]")}catch{} if(providers.includes("google"))g++;if(providers.includes("email"))e++;}
+ document.getElementById("google").textContent=g;document.getElementById("email").textContent=e;
+ document.getElementById("userRows").innerHTML=rows.map(u=>{
+ let p=[];try{p=JSON.parse(u.providers||"[]")}catch{}
+ return '<tr><td>'+escapeHtml(u.display_name||"—")+'</td><td>'+escapeHtml(u.email||"—")+'</td><td><span class="pill">'+escapeHtml(p.join(", ")||"unknown")+'</span></td><td>'+fmt(u.created_at)+'</td><td>'+fmt(u.last_sign_in_at)+'</td></tr>';
+ }).join("");
+ state.hidden=true;table.hidden=false;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+document.getElementById("refresh").addEventListener("click",load);
+await load();
+</script></body></html>
