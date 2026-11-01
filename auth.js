@@ -45,6 +45,7 @@ export async function initAuthUI() {
         <a href="./profile.html#profile">Profile</a>
         <a href="./profile.html#favorites">Favorite List</a>
         <a href="./profile.html#read-later">Read Later</a>
+        <div class="menu-filter"><label for="menuLengthFilter">Hadith length</label><select id="menuLengthFilter"><option value="all">All</option><option value="small">Small</option><option value="medium">Medium</option><option value="large">Large</option></select></div>
         <a href="./profile.html#settings">Settings</a>
         <button id="menuLogout" type="button">Logout</button>
       </div>
