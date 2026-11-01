@@ -103,3 +103,5 @@ body.dark .reading-feature-label,body.dark .reading-feature-foot{color:#a7c5b1}
 }
 
 .reader-actions[hidden]{display:none}
+
+.account-dropdown .menu-filter{padding:10px 12px 12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:4px 0;display:grid;gap:7px}.account-dropdown .menu-filter label{font-size:11px;font-weight:800;color:var(--muted)}.account-dropdown .menu-filter select{width:100%;min-height:38px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);font:600 12px Inter,Arial,sans-serif}
