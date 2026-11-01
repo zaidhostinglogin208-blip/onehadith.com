@@ -14,7 +14,7 @@ export async function ensureProfile(user, displayName = "") {
     .eq("id", user.id).maybeSingle();
   if (readError) return { error: readError };
   if (!existing) {
-    const metadataName = displayName || user.user_metadata?.display_name || (user.email || "").split("@")[0];
+    const metadataName = displayName || user.user_metadata?.display_name || user.user_metadata?.full_name || user.user_metadata?.name || (user.email || "").split("@")[0];
     const parts = metadataName.trim().split(/\s+/);
     const { data, error } = await supabase.from("profiles").insert({
       id: user.id, display_name: metadataName,
