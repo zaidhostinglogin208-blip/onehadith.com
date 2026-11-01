@@ -12,6 +12,8 @@
 <main class="auth-main"><section class="auth-card">
 <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
 <h1>Create your account.</h1><p class="auth-muted">Your Hadith reading can stay public; your account is for personal features.</p>
+<button id="googleSignup" class="auth-submit" type="button" style="width:100%;margin:18px 0;padding:13px;border:1px solid #d8d4ca;border-radius:12px;background:#fff;color:#222;font:600 15px Inter,sans-serif;cursor:pointer;">Continue with Google</button>
+<div style="display:flex;align-items:center;gap:12px;margin:8px 0 18px;color:#888;font-size:12px;"><span style="height:1px;background:#ddd;flex:1"></span>OR SIGN UP WITH EMAIL<span style="height:1px;background:#ddd;flex:1"></span></div>
 <form id="signupForm" class="auth-form">
 <label>Name<input id="name" type="text" maxlength="80" autocomplete="name" required></label>
 <label>Email<input id="email" type="email" autocomplete="email" required></label>
@@ -26,6 +28,11 @@
 import { supabase, ensureProfile } from "./auth.js";
 const form=document.getElementById("signupForm"), msg=document.getElementById("message");
 function show(text,ok=false){msg.textContent=text;msg.className="auth-message "+(ok?"ok":"error");}
+document.getElementById("googleSignup").addEventListener("click",async()=>{
+ show("Connecting to Google…");
+ const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.origin+location.pathname.replace("signup.html","profile.html")}});
+ if(error)show(error.message);
+});
 form.addEventListener("submit",async e=>{
   e.preventDefault();
   const name=document.getElementById("name").value.trim();
