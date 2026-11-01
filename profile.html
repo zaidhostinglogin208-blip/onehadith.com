@@ -4,38 +4,97 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>My Account — One Hadith</title><link rel="stylesheet" href="style.css">
 </head>
-<body><header><a class="brand" href="./"><span>ﷲ</span> One Hadith</a><nav><button class="nav-link" id="logout">Logout</button></nav></header>
-<main class="auth-main"><section class="auth-card">
-<div class="eyebrow">My account</div><h1 id="hello">Account</h1>
-<section class="reading-feature" aria-labelledby="readingTitle">
-  <div class="reading-feature-top"><span class="reading-feature-icon" aria-hidden="true">✦</span><span class="reading-feature-label">A MOMENT OF REFLECTION</span></div>
-  <h2 id="readingTitle">Your next Hadith is waiting.</h2>
-  <p>Take a quiet moment. Read one Hadith, understand its message, and carry one good lesson into your day.</p>
-  <a class="reading-cta" href="./?start=1"><span>Start reading</span><span class="reading-cta-circle" aria-hidden="true">→</span></a>
-  <div class="reading-feature-foot"><span>One Hadith at a time</span><span>♡</span></div>
+<body><header><a class="brand" href="./"><span>ﷲ</span> One Hadith</a><nav><div class="account-nav" id="accountNav"></div></nav></header>
+<main class="account-main">
+<section class="account-welcome"><div class="eyebrow">YOUR PERSONAL SPACE</div><h1 id="hello">Your Profile</h1><p>Manage your details, reading preference and saved Hadith in one place.</p></section>
+<section class="account-panel" id="profile">
+  <div class="account-section-heading"><span class="section-symbol">◉</span><div><h2>Profile settings</h2><p>Update your name and reading preference.</p></div></div>
+  <form id="profileForm" class="auth-form profile-settings">
+    <div class="name-fields">
+      <label>First name<input id="firstName" type="text" maxlength="60" autocomplete="given-name" required></label>
+      <label>Last name<input id="lastName" type="text" maxlength="60" autocomplete="family-name"></label>
+    </div>
+    <label>Hadith length preference
+      <select id="preferredLength"><option value="all">All Hadith</option><option value="small">Small · Under 40 words</option><option value="medium">Medium · 40–80 words</option><option value="large">Large · Over 80 words</option></select>
+    </label>
+    <button class="primary auth-submit" type="submit">Save Profile <b>✓</b></button>
+  </form>
+  <div id="adminBox" class="admin-note" hidden>Admin access is enabled for this account.</div>
+  <p id="message" class="auth-message" role="status"></p>
 </section>
-<form id="profileForm" class="auth-form">
-<label>Display name<input id="name" type="text" maxlength="80" autocomplete="name"></label>
-<button class="primary auth-submit" type="submit">Save Profile <b>✓</b></button>
-</form>
-<div id="adminBox" class="admin-note" hidden>Admin access is enabled for this account.</div>
-<p id="message" class="auth-message" role="status"></p>
-</section></main>
+<section class="account-panel" id="favorites">
+  <div class="account-section-heading"><span class="section-symbol favorite-symbol">♥</span><div><h2>Favorite List</h2><p>Hadith you have marked as favorite.</p></div></div>
+  <div id="favoriteList" class="saved-list"><p class="empty-list">Loading your favorites…</p></div>
+</section>
+<section class="account-panel" id="read-later">
+  <div class="account-section-heading"><span class="section-symbol">◷</span><div><h2>Read Later</h2><p>Your saved reading queue. Items stay here until you manually remove them.</p></div></div>
+  <div id="readLaterList" class="saved-list"><p class="empty-list">Loading your reading list…</p></div>
+</section>
+<section class="account-panel account-help" id="settings">
+  <div class="account-section-heading"><span class="section-symbol">⚙</span><div><h2>Reading settings</h2><p>Your selected Hadith length filter is also applied on the Home page.</p></div></div>
+  <a class="reading-cta" href="./"><span>Back to Home</span><span class="reading-cta-circle" aria-hidden="true">→</span></a>
+</section>
+</main>
 <script type="module">
-import { supabase, ensureProfile } from "./auth.js";
+import { supabase, ensureProfile, initAuthUI } from "./auth.js";
 const msg=document.getElementById("message");
 function show(t,ok=false){msg.textContent=t;msg.className="auth-message "+(ok?"ok":"error");}
-const {data:{user}}=await supabase.auth.getUser();
+const user=await supabase.auth.getUser().then(x=>x.data.user);
 if(!user){location.href="./login.html";throw new Error("Not authenticated");}
+await initAuthUI();
 const {data:profile,error}=await ensureProfile(user);
 if(error){show("Could not load your profile: "+error.message);throw error;}
-document.getElementById("hello").textContent="Hello, "+(profile.display_name||user.email.split("@")[0])+".";
-document.getElementById("name").value=profile.display_name||"";
-if(profile.role==="admin"){document.getElementById("adminBox").hidden=false;document.getElementById("adminBox").innerHTML='Admin access is enabled. <a href="./admin.html" style="color:inherit;font-weight:900">Open Admin Dashboard →</a>';}
+const first=profile.first_name||((profile.display_name||"").trim().split(/\s+/)[0]||"");
+const last=profile.last_name||((profile.display_name||"").trim().split(/\s+/).slice(1).join(" "));
+document.getElementById("hello").textContent="Hello, "+([first,last].filter(Boolean).join(" ")||"there")+".";
+document.getElementById("firstName").value=first;
+document.getElementById("lastName").value=last;
+document.getElementById("preferredLength").value=profile.preferred_length||"all";
+if(profile.role==="admin"){const box=document.getElementById("adminBox");box.hidden=false;box.innerHTML='Admin access is enabled. <a href="./admin.html" style="color:inherit;font-weight:900">Open Admin Dashboard →</a>';}
+if(localStorage.getItem("oh-theme")==="dark")document.body.classList.add("dark");
 document.getElementById("profileForm").addEventListener("submit",async e=>{
- e.preventDefault();const name=document.getElementById("name").value.trim();
- const {error}=await supabase.from("profiles").update({display_name:name}).eq("id",user.id);
- if(error){show(error.message);return;}show("Profile saved.",true);
+ e.preventDefault();
+ const firstName=document.getElementById("firstName").value.trim();
+ const lastName=document.getElementById("lastName").value.trim();
+ const preferredLength=document.getElementById("preferredLength").value;
+ const displayName=[firstName,lastName].filter(Boolean).join(" ");
+ const {error}=await supabase.from("profiles").update({first_name:firstName,last_name:lastName,display_name:displayName,preferred_length:preferredLength}).eq("id",user.id);
+ if(error){show(error.message);return;}
+ document.getElementById("hello").textContent="Hello, "+displayName+".";
+ show("Profile saved.",true);
 });
-document.getElementById("logout").addEventListener("click",async()=>{await supabase.auth.signOut();location.href="./";});
+let hadiths=[];
+try{const response=await fetch("./data/hadith.json",{cache:"no-store"});hadiths=await response.json();}catch(e){console.error(e);}
+function addListItem(container,item,type){
+ const h=hadiths.find(x=>x.id===item.hadith_id);
+ if(!h)return;
+ const card=document.createElement("article");card.className="saved-item";
+ const details=document.createElement("div");details.className="saved-item-copy";
+ const title=document.createElement("strong");title.textContent=(h.collection||"Hadith")+" · "+(h.hadithNumber||"");
+ const snippet=document.createElement("p");snippet.textContent=(h.english||"").slice(0,155)+(h.english?.length>155?"…":"");
+ const ref=document.createElement("small");ref.textContent=h.inBookReference||h.source||"";
+ details.append(title,snippet,ref);
+ const actions=document.createElement("div");actions.className="saved-item-actions";
+ const read=document.createElement("a");read.className="saved-read";read.href="./?read="+encodeURIComponent(h.id);read.textContent="Read";
+ const remove=document.createElement("button");remove.type="button";remove.className="saved-remove";remove.textContent="Remove";
+ remove.addEventListener("click",async()=>{
+   remove.disabled=true;
+   const {error}=await supabase.from("user_hadith_saves").delete().eq("user_id",user.id).eq("hadith_id",h.id).eq("list_type",type);
+   if(error){remove.disabled=false;show("Could not remove item: "+error.message);return;}
+   card.remove();
+   if(!container.querySelector(".saved-item")){const empty=document.createElement("p");empty.className="empty-list";empty.textContent=type==="favorite"?"No favorite Hadith yet.":"Your Read Later list is empty.";container.append(empty);}
+ });
+ actions.append(read,remove);card.append(details,actions);container.append(card);
+}
+async function loadSavedLists(){
+ const {data,error}=await supabase.from("user_hadith_saves").select("hadith_id,list_type,created_at").eq("user_id",user.id).order("created_at",{ascending:false});
+ if(error){show("Could not load your saved Hadith: "+error.message);return;}
+ for(const [type,id,emptyText] of [["favorite","favoriteList","No favorite Hadith yet."],["read_later","readLaterList","Your Read Later list is empty."]]){
+   const container=document.getElementById(id);container.replaceChildren();
+   const items=(data||[]).filter(x=>x.list_type===type);
+   if(!items.length){const empty=document.createElement("p");empty.className="empty-list";empty.textContent=emptyText;container.append(empty);continue;}
+   items.forEach(item=>addListItem(container,item,type));
+ }
+}
+await loadSavedLists();
 </script></body></html>
