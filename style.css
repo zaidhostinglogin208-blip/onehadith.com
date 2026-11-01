@@ -101,3 +101,5 @@ body.dark .reading-feature-label,body.dark .reading-feature-foot{color:#a7c5b1}
  .saved-item-actions{justify-content:flex-end}
  .account-panel{border-radius:18px;padding:20px 16px}
 }
+
+.reader-actions[hidden]{display:none}
