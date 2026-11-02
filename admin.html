@@ -18,9 +18,10 @@ async function load(){
  state.hidden=false;state.textContent="Loading users…";table.hidden=true;
  const {data:{user},error:authError}=await supabase.auth.getUser();
  if(authError||!user){location.href="./login.html";return;}
- const {data,error}=await supabase.rpc("admin_list_users");
- if(error){state.textContent=error.message.includes("Not authorized")?"Access denied. This account is not an administrator.":"Could not load users: "+error.message;return;}
- const rows=data||[];
+ const {data,error}=await supabase.functions.invoke("admin-users",{method:"POST"});
+ if(error){state.textContent="Could not load users. Please refresh or sign in again.";return;}
+ if(data?.error){state.textContent=data.error==="Not authorized"?"Access denied. This account is not an administrator.":"Could not load users: "+data.error;return;}
+ const rows=data?.users||[];
  document.getElementById("total").textContent=rows.length;
  let g=0,e=0;
  for(const u of rows){let providers=[];try{providers=JSON.parse(u.providers||"[]")}catch{} if(providers.includes("google"))g++;if(providers.includes("email"))e++;}
