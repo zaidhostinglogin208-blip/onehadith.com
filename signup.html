@@ -38,34 +38,41 @@
 <p id="message" class="auth-message" role="status"></p>
 <p class="auth-switch">Already have an account? <a href="./login.html">Login</a></p>
 </section></main>
+<script>
+window.addEventListener("error",function(e){
+ if(e.target&&e.target.tagName==="SCRIPT"){const m=document.getElementById("message");if(m){m.textContent="Sign-up service could not load. Refresh the page or try again shortly.";m.className="auth-message error";}}
+},true);
+</script>
 <script type="module">
-import { supabase, ensureProfile } from "./auth.js";
-const form=document.getElementById("signupForm"), msg=document.getElementById("message");
+const form=document.getElementById("signupForm"),msg=document.getElementById("message"),googleButton=document.getElementById("googleSignup"),submitButton=form.querySelector('button[type="submit"]');
 function show(text,ok=false){msg.textContent=text;msg.className="auth-message "+(ok?"ok":"error");}
-document.getElementById("googleSignup").addEventListener("click",async()=>{
- show("Connecting to Google…");
- const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.origin+location.pathname.replace("signup.html","profile.html")}});
- if(error)show(error.message);
-});
-form.addEventListener("submit",async e=>{
+function busy(button,on,label){button.disabled=on;if(label)button.textContent=label;}
+try{
+ const {supabase,ensureProfile}=await import("./auth.js");
+ googleButton.addEventListener("click",async()=>{
+  busy(googleButton,true,"Connecting to Google…");show("Connecting to Google…");
+  try{const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:new URL("./profile.html",location.href).href}});
+   if(error)show(error.message);
+  }catch(error){show(error?.message||"Google sign-up could not start.");}
+  finally{busy(googleButton,false,"Continue with Google");}
+ });
+ form.addEventListener("submit",async e=>{
   e.preventDefault();
-  const name=document.getElementById("name").value.trim();
-  const email=document.getElementById("email").value.trim();
-  const password=document.getElementById("password").value;
-  const confirm=document.getElementById("confirm").value;
+  const name=document.getElementById("name").value.trim(),email=document.getElementById("email").value.trim(),password=document.getElementById("password").value,confirm=document.getElementById("confirm").value;
   if(password!==confirm){show("Passwords do not match.");return;}
-  show("Creating your account…");
-  const {data,error}=await supabase.auth.signUp({
-    email,password,
-    options:{data:{display_name:name},emailRedirectTo:location.origin+location.pathname.replace("signup.html","profile.html")}
-  });
-  if(error){show(error.message);return;}
-  if(data.user && data.session){
-    await ensureProfile(data.user,name);
-    location.href="./profile.html";
-    return;
-  }
-  show("Account created. Please check your email and confirm your account before logging in.",true);
-});
+  busy(submitButton,true,"Creating account…");show("Creating your account…");
+  try{
+   const {data,error}=await supabase.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:new URL("./profile.html",location.href).href}});
+   if(error){show(error.message);return;}
+   if(data.user&&data.session){
+    const profile=await ensureProfile(data.user,name);
+    if(profile.error){show("Account created, but profile setup failed: "+profile.error.message);return;}
+    location.href="./profile.html";return;
+   }
+   show("Account created. Please check your email and confirm your account before logging in.",true);
+  }catch(error){show(error?.message||"Sign-up failed. Please try again.");}
+  finally{busy(submitButton,false,"Create Account →");}
+ });
+}catch(error){show("Sign-up service could not start: "+(error?.message||"Please refresh and try again."));}
 </script>
 </body></html>
