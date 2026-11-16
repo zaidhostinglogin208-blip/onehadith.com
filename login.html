@@ -37,30 +37,45 @@
 <p id="message" class="auth-message" role="status"></p>
 <p class="auth-switch">New here? <a href="./signup.html">Create an account</a></p>
 </section></main>
+<script>
+window.addEventListener("error",function(e){
+ if(e.target&&e.target.tagName==="SCRIPT"){const m=document.getElementById("message");if(m){m.textContent="Login service could not load. Refresh the page or try again shortly.";m.className="auth-message error";}}
+},true);
+</script>
 <script type="module">
-import { supabase, ensureProfile } from "./auth.js";
 const form=document.getElementById("loginForm"), msg=document.getElementById("message");
+const googleButton=document.getElementById("googleLogin"), submitButton=form.querySelector('button[type="submit"]'), forgotButton=document.getElementById("forgot");
 function show(text,ok=false){msg.textContent=text;msg.className="auth-message "+(ok?"ok":"error");}
-document.getElementById("googleLogin").addEventListener("click",async()=>{
- show("Connecting to Google…");
- const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.origin+location.pathname.replace("login.html","profile.html")}});
- if(error)show(error.message);
-});
-form.addEventListener("submit",async e=>{
-  e.preventDefault(); show("Logging in…");
-  const email=document.getElementById("email").value.trim();
-  const password=document.getElementById("password").value;
-  const {data,error}=await supabase.auth.signInWithPassword({email,password});
-  if(error){show(error.message);return;}
-  await ensureProfile(data.user);
-  location.href="./profile.html";
-});
-document.getElementById("forgot").addEventListener("click",async()=>{
-  const email=document.getElementById("email").value.trim();
-  if(!email){show("Enter your email first.");return;}
-  const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname.replace("login.html","reset.html")});
-  if(error){show(error.message);return;}
-  show("If the email is eligible, a password reset message has been sent.",true);
-});
+function busy(button,on,label){button.disabled=on;if(label)button.textContent=label;}
+try{
+ const {supabase,ensureProfile}=await import("./auth.js");
+ googleButton.addEventListener("click",async()=>{
+  busy(googleButton,true,"Connecting to Google…");show("Connecting to Google…");
+  try{const {error}=await supabase.auth.signInWithOAuth({provider:"google",options:{redirectTo:new URL("./profile.html",location.href).href}});
+   if(error)show(error.message);
+  }catch(error){show(error?.message||"Google sign-in could not start.");}
+  finally{busy(googleButton,false,"Continue with Google");}
+ });
+ form.addEventListener("submit",async e=>{
+  e.preventDefault();busy(submitButton,true,"Logging in…");show("Logging in…");
+  try{
+   const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;
+   const {data,error}=await supabase.auth.signInWithPassword({email,password});
+   if(error){show(error.message);return;}
+   const profile=await ensureProfile(data.user);
+   if(profile.error){show("Signed in, but your profile could not be prepared: "+profile.error.message);return;}
+   location.href="./profile.html";
+  }catch(error){show(error?.message||"Login failed. Please try again.");}
+  finally{busy(submitButton,false,"Login →");}
+ });
+ forgotButton.addEventListener("click",async()=>{
+  const email=document.getElementById("email").value.trim();if(!email){show("Enter your email first.");return;}
+  busy(forgotButton,true,"Sending…");
+  try{const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:new URL("./reset.html",location.href).href});
+   if(error){show(error.message);return;}show("If the email is eligible, a password reset message has been sent.",true);
+  }catch(error){show(error?.message||"Could not request a password reset.");}
+  finally{busy(forgotButton,false,"Forgot password?");}
+ });
+}catch(error){show("Login service could not start: "+(error?.message||"Please refresh and try again."));}
 </script>
 </body></html>
